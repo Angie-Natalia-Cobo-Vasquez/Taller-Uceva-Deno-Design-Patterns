@@ -1,102 +1,87 @@
 /**
- * ! Patrón Adapter
- *  Permite que objetos con interfaces incompatibles trabajen juntos, también es muy
- *  util para utilizar librerías de terceros en nuestra aplicación sin depender
- *  directamente de ellas.
- *
- * * Es útil cuando se quiere reutilizar una clase que no tiene la interfaz que
- * * necesitamos o cuando queremos crear una capa de abstracción para una librería
- * * de terceros.
- *
- * https://refactoring.guru/es/design-patterns/adapter
+ * Patrón Adapter (Adaptador): convierte la interfaz de una clase existente en
+ * otra que el cliente espera.
+ * Este ejemplo integra un inventario antiguo cuyos nombres de método y campos
+ * no coinciden con la interfaz de la aplicación. El adaptador es adecuado porque
+ * permite reutilizar ese sistema sin cambiar su código original.
+ * Referencia: https://refactoring.guru/es/design-patterns/adapter
  */
 
-import { COLORS } from '../../helpers/colors.ts';
+export {};
 
-// 1. Interfaz PaymentProcessor
-interface PaymentProcessor {
-  processPayment(amount: number): void;
+interface InventoryItem {
+  code: string;
+  name: string;
+  quantity: number;
 }
 
-// 2. Clases de Servicios de Pago Externos
-// Estas clases simulan los servicios externos de PayPal, Stripe y MercadoPago
+interface InventoryService {
+  findItem(code: string): InventoryItem | undefined;
+}
 
-class PayPalService {
-  sendPayment(amount: number): void {
-    console.log(`Procesando pago de $${amount} con %cPayPal`, COLORS.blue);
+interface LegacyInventoryRecord {
+  codigoArticulo: string;
+  descripcionArticulo: string;
+  unidadesDisponibles: number;
+}
+
+class OldInventorySystem {
+  private records: LegacyInventoryRecord[] = [
+    {
+      codigoArticulo: 'LAB-204',
+      descripcionArticulo: 'Cable HDMI',
+      unidadesDisponibles: 18,
+    },
+    {
+      codigoArticulo: 'LAB-310',
+      descripcionArticulo: 'Adaptador USB-C',
+      unidadesDisponibles: 7,
+    },
+  ];
+
+  // El sistema antiguo utiliza un nombre de método y campos diferentes.
+  consultarArticulo(codigo: string): LegacyInventoryRecord | undefined {
+    return this.records.find((record) => record.codigoArticulo === codigo);
   }
 }
 
-class StripeService {
-  makeCharge(amount: number): void {
-    console.log(`Procesando pago de $${amount} con %cStripe`, COLORS.purple);
+class InventoryAdapter implements InventoryService {
+  private oldInventory: OldInventorySystem;
+
+  constructor(oldInventory: OldInventorySystem) {
+    this.oldInventory = oldInventory;
+  }
+
+  findItem(code: string): InventoryItem | undefined {
+    const oldRecord = this.oldInventory.consultarArticulo(code);
+
+    if (!oldRecord) {
+      return undefined;
+    }
+
+    return {
+      code: oldRecord.codigoArticulo,
+      name: oldRecord.descripcionArticulo,
+      quantity: oldRecord.unidadesDisponibles,
+    };
   }
 }
 
-class MercadoPagoService {
-  pay(amount: number): void {
-    console.log(
-      `Procesando pago de $${amount} con %cMercadoPago`,
-      COLORS.yellow
-    );
+function main(): void {
+  const oldInventory = new OldInventorySystem();
+  const inventory: InventoryService = new InventoryAdapter(oldInventory);
+  const requestedCode = 'LAB-204';
+
+  console.log(`Consulta de inventario para el código ${requestedCode}:`);
+  const item = inventory.findItem(requestedCode);
+
+  if (item) {
+    console.log(`Producto: ${item.name}`);
+    console.log(`Código: ${item.code}`);
+    console.log(`Unidades disponibles: ${item.quantity}`);
+  } else {
+    console.log('No se encontró el producto solicitado.');
   }
-}
-
-// 3. Clases Adaptadoras
-
-// Adaptador para PayPal
-class PayPalAdapter implements PaymentProcessor {
-  // TODO: Implementar la interfaz PaymentProcessor
-
-  private payPalService = new PayPalService();
-
-  processPayment(amount: number): void {
-    this.payPalService.sendPayment(amount);
-  }
-}
-
-// Adaptador para Stripe
-class StripeAdapter implements PaymentProcessor {
-  // TODO: Implementar la interfaz PaymentProcessor
-
-  private stripeService = new StripeService();
-
-  processPayment(amount: number): void {
-    this.stripeService.makeCharge(amount);
-  }
-}
-
-// Adaptador para MercadoPago
-class MercadoPagoAdapter implements PaymentProcessor {
-  // TODO: Implementar la interfaz PaymentProcessor
-
-  private mercadoPagoService = new MercadoPagoService();
-
-  processPayment(amount: number): void {
-    this.mercadoPagoService.pay(amount);
-  }
-}
-
-// 4. Código Cliente para probar el Adapter
-
-function main() {
-  const paymentAmount = 100;
-
-  // TODO: Agregar los adaptadores para los servicios de pago
-  const paypalProcessor: PaymentProcessor = new PayPalAdapter();
-  const stripeProcessor: PaymentProcessor = new StripeAdapter();
-  const mercadoPagoProcessor: PaymentProcessor = new MercadoPagoAdapter();
-
-  // Procesar pagos con los diferentes servicios
-  // Los 3 procesadores de pago trabajan exactamente igual después de adaptaros
-  console.log('Usando PayPal:');
-  paypalProcessor.processPayment(paymentAmount);
-
-  console.log('\nUsando Stripe:');
-  stripeProcessor.processPayment(paymentAmount);
-
-  console.log('\nUsando MercadoPago:');
-  mercadoPagoProcessor.processPayment(paymentAmount);
 }
 
 main();

@@ -1,97 +1,96 @@
 /**
- * ! Patrón Builder:
- * Es un patrón de diseño creacional que nos permite construir objetos complejos
- * paso a paso.
- *
- * El patrón nos permite producir distintos tipos y representaciones
- * de un objeto empleando el mismo código de construcción.
- *
- * * Es útil cuando necesitamos construir un objeto complejo con muchas partes
- * * y queremos que el proceso de construcción sea independiente de las partes
- * * que lo componen.
+ * Patrón Builder (Constructor): permite crear un objeto paso a paso y separar
+ * su construcción de la representación final.
+ * En este ejemplo resuelve la creación de reservas de eventos con datos y
+ * servicios opcionales. Es adecuado porque cada reserva puede combinar
+ * opciones distintas sin crear un constructor diferente para cada combinación.
+ * Referencia: https://refactoring.guru/es/design-patterns/builder
  */
 
-import { COLORS } from '../../helpers/colors.ts';
+export {};
 
-//! Tarea: crear un QueryBuilder para construir consultas SQL
-/**
- * Debe de tener los siguientes métodos:
- * - constructor(table: string)
- * - select(fields: string[]): QueryBuilder -- si no se pasa ningún campo, se seleccionan todos con el (*)
- * - where(condition: string): QueryBuilder - opcional
- * - orderBy(field: string, order: string): QueryBuilder - opcional
- * - limit(limit: number): QueryBuilder - opcional
- * - execute(): string - retorna la consulta SQL
- * 
- ** Ejemplo de uso:
-  const usersQuery = new QueryBuilder("users") // users es el nombre de la tabla
-    .select("id", "name", "email")
-    .where("age > 18")
-    .where("country = 'Cri'")
-    .orderBy("name", "ASC")
-    .limit(10)
-    .execute();
+class EventReservation {
+  private eventName: string;
+  private date: string;
+  private venue: string;
+  private services: string[];
 
-  console.log('Consulta: ', usersQuery);
-  // Select id, name, email from users where age > 18 and country = 'Cri' order by name ASC limit 10;
- */
-
-//! Solución
-
-class QueryBuilder {
-  private table: string;
-  private fields: string[] = [];
-  private conditions: string[] = [];
-  private orderFields: string[] = [];
-  private limitCount?: number;
-
-  constructor(table: string) {
-    this.table = table;
+  constructor(eventName: string, date: string, venue: string, services: string[]) {
+    this.eventName = eventName;
+    this.date = date;
+    this.venue = venue;
+    this.services = services;
   }
 
-  select(...fields: string[]): QueryBuilder {
-    this.fields = fields;
-    return this;
-  }
+  displayDetails(): void {
+    const additionalServices = this.services.length > 0
+      ? this.services.join(', ')
+      : 'Ninguno';
 
-  where(condition: string): QueryBuilder {
-    this.conditions.push(condition);
-    return this;
-  }
-
-  orderBy(field: string, direction: 'ASC' | 'DESC' = 'ASC'): QueryBuilder {
-    this.orderFields.push(`${field} ${direction}`);
-    return this;
-  }
-
-  limit(count: number): QueryBuilder {
-    this.limitCount = count;
-    return this;
-  }
-
-  execute(): string {
-
-    const fields = this.fields.length ? this.fields.join(', ') : '*';
-    const whereCaluse = this.conditions.length ? `WHERE ${this.conditions.join(' AND ')}` : '';
-    const orderByClause = this.orderFields.length ? `ORDER BY ${this.orderFields.join(', ')}` : '';
-    const limitClause = this.limitCount ? `LIMIT ${this.limitCount}` : '';
-
-    // Select id, name, email from users where age > 18 and country = 'Cri' order by name ASC limit 10;
-    return `SELECT ${fields} FROM ${this.table} ${whereCaluse} ${orderByClause} ${limitClause}`;
+    console.log(`Evento: ${this.eventName}`);
+    console.log(`Fecha: ${this.date}`);
+    console.log(`Lugar: ${this.venue}`);
+    console.log(`Servicios adicionales: ${additionalServices}\n`);
   }
 }
 
-function main() {
-  const usersQuery = new QueryBuilder('users')
-    .select('id', 'name', 'email')
-    .where('age > 18')
-    .where("country = 'Cri'") // Esto debe de hacer una condición AND
-    .orderBy('name', 'ASC')
-    .limit(10)
-    .execute();
+class EventReservationBuilder {
+  private eventName = '';
+  private date = '';
+  private venue = '';
+  private services: string[] = [];
 
-  console.log('%cConsulta:\n', COLORS.red);
-  console.log(usersQuery);
+  setEventName(eventName: string): EventReservationBuilder {
+    this.eventName = eventName;
+    return this;
+  }
+
+  setDate(date: string): EventReservationBuilder {
+    this.date = date;
+    return this;
+  }
+
+  setVenue(venue: string): EventReservationBuilder {
+    this.venue = venue;
+    return this;
+  }
+
+  addService(service: string): EventReservationBuilder {
+    this.services.push(service);
+    return this;
+  }
+
+  // El mismo proceso de construcción permite incluir o no servicios opcionales.
+  build(): EventReservation {
+    return new EventReservation(
+      this.eventName,
+      this.date,
+      this.venue,
+      [...this.services],
+    );
+  }
+}
+
+function main(): void {
+  const academicConference = new EventReservationBuilder()
+    .setEventName('Encuentro de Ingeniería de Software')
+    .setDate('15 de noviembre de 2026')
+    .setVenue('Auditorio UCEVA')
+    .addService('Proyección')
+    .addService('Refrigerio')
+    .build();
+
+  const studentWorkshop = new EventReservationBuilder()
+    .setEventName('Taller de prototipado')
+    .setDate('22 de noviembre de 2026')
+    .setVenue('Sala de innovación')
+    .build();
+
+  console.log('Reserva 1:');
+  academicConference.displayDetails();
+
+  console.log('Reserva 2:');
+  studentWorkshop.displayDetails();
 }
 
 main();

@@ -1,133 +1,91 @@
 /**
- * ! Patrón Flyweight
- * Es un patrón de diseño estructural que nos permite usar objetos compartidos
- * para soportar eficientemente grandes cantidades de objetos.
- *
- * * Es útil cuando necesitamos una gran cantidad de objetos y queremos reducir
- * * la cantidad de memoria que utilizan.
+ * Patrón Flyweight (Peso ligero): comparte objetos con información repetida
+ * para reducir la cantidad de instancias necesarias.
+ * En el mapa universitario, muchos lugares pueden usar el mismo icono; la fábrica
+ * reutiliza los datos del icono y cada lugar conserva sus coordenadas propias.
+ * Es adecuado cuando se repite el estado del icono entre muchas ubicaciones.
+ * Referencia: https://refactoring.guru/es/design-patterns/flyweight
  */
 
-import { COLORS } from '../../helpers/colors.ts';
+interface Coordinates {
+  x: number;
+  y: number;
+}
 
-// 1. Clase que representa el tipo de bala - BulletType (Flyweight)
-class BulletType {
-  private name: string;
-  private damage: number;
-  private color: string;
+class MapIcon {
+  private type: string;
+  private symbol: string;
 
-  constructor(name: string, damage: number, color: string) {
-    this.name = name;
-    this.damage = damage;
-    this.color = color;
+  constructor(type: string, symbol: string) {
+    this.type = type;
+    this.symbol = symbol;
   }
 
-  getName(): string {
-    return this.name;
-  }
-
-  getDamage(): number {
-    return this.damage;
-  }
-
-  getColor(): string {
-    return this.color;
+  displayPlace(name: string, coordinates: Coordinates): void {
+    console.log(
+      `${name}: tipo ${this.type}, icono ${this.symbol}, coordenadas (${coordinates.x}, ${coordinates.y})`,
+    );
   }
 }
 
-// 2. Fábrica de Flyweights - BulletTypeFactory
-class BulletTypeFactory {
-  private bulletTypes: Record<string, BulletType> = {};
+class MapIconFactory {
+  private icons: Record<string, MapIcon> = {};
 
-  getBulletType(name: string, damage: number, color: string): BulletType {
-    // TODO: Implementar un método para obtener un tipo de bala
-    // Si no existe el tipo de bala, crearlo y guardarlo en la lista de tipos de bala
-    // Si existe el tipo de bala, devolverlo
+  getIcon(type: string, symbol: string): MapIcon {
+    const key = type;
 
-    // TODO: El key, debería de ser un identificador único para cada tipo de bala
-    // name-damage-color
-    const key = `${name}-${damage}-${color}`;
-    
-    if(!this.bulletTypes[key]){
-      console.log(`%cCreando una instancia del BulletType ${key}`, COLORS.red);
-      this.bulletTypes[key] = new BulletType(name, damage, color);
+    if (!this.icons[key]) {
+      console.log(`Creando icono compartido para: ${type}`);
+      this.icons[key] = new MapIcon(type, symbol);
+    } else {
+      console.log(`Reutilizando icono compartido para: ${type}`);
     }
 
-    return this.bulletTypes[key];
+    return this.icons[key];
   }
 }
 
-// 3. Clase que representa una Bala - Bullet
-class Bullet {
-  private x: number;
-  private y: number;
-  private direction: number;
-  private bulletType: BulletType;
+class UniversityPlace {
+  private name: string;
+  private coordinates: Coordinates;
+  private icon: MapIcon;
 
-  constructor(x: number, y: number, direction: number, bulletType: BulletType) {
-    this.x = x;
-    this.y = y;
-    this.direction = direction;
-    this.bulletType = bulletType;
+  constructor(name: string, x: number, y: number, icon: MapIcon) {
+    this.name = name;
+    this.coordinates = { x, y };
+    this.icon = icon;
   }
 
   display(): void {
-    const text = `
-      Bala del tipo: %c"${this.bulletType.getName()}" 
-      %cCoords: (${this.x}, ${this.y})
-      Dirección ${this.direction}
-      Daño: ${this.bulletType.getDamage()} 
-      Color: ${this.bulletType.getColor()}
-    `;
+    this.icon.displayPlace(this.name, this.coordinates);
+  }
 
-    console.log(text, COLORS.green, COLORS.white);
+  getIcon(): MapIcon {
+    return this.icon;
   }
 }
 
-// 4. Sistema de Disparos - ShootingSystem
+function main(): void {
+  const factory = new MapIconFactory();
+  const libraryIcon = factory.getIcon('Biblioteca', '[B]');
+  const cafeteriaIcon = factory.getIcon('Cafetería', '[C]');
 
-class ShootingSystem {
-  private bullets: Bullet[] = [];
-  private factory: BulletTypeFactory;
+  const places = [
+    new UniversityPlace('Biblioteca central', 12, 8, libraryIcon),
+    new UniversityPlace('Biblioteca de idiomas', 30, 14, factory.getIcon('Biblioteca', '[B]')),
+    new UniversityPlace('Cafetería principal', 20, 25, cafeteriaIcon),
+    new UniversityPlace('Cafetería de ingeniería', 42, 18, factory.getIcon('Cafetería', '[C]')),
+    new UniversityPlace('Laboratorio de química', 50, 40, factory.getIcon('Laboratorio', '[L]')),
+  ];
 
-  constructor(factory: BulletTypeFactory) {
-    this.factory = factory;
-  }
-
-  shoot(
-    x: number,
-    y: number,
-    direction: number,
-    type: string,
-    damage: number,
-    color: string
-  ): void {
-    const bulletType = this.factory.getBulletType(type, damage, color);
-    const bullet = new Bullet(x, y, direction, bulletType);
-    this.bullets.push(bullet);
-    bullet.display();
-  }
-
-  getBulletCount(): number {
-    return this.bullets.length;
-  }
-}
-
-// 5. Código Cliente para probar el Flyweight
-
-function main() {
-  const factory = new BulletTypeFactory();
-  const shootingSystem = new ShootingSystem(factory);
-
-  // Disparar varias balas de diferentes tipos
-  shootingSystem.shoot(10, 20, 0, 'Pistola', 10, 'Gris');
-  shootingSystem.shoot(15, 25, 90, 'Escopeta', 20, 'Rojo');
-  shootingSystem.shoot(20, 30, 180, 'Rifle', 15, 'Verde');
-  shootingSystem.shoot(10, 20, 45, 'Pistola', 10, 'Gris');
-  shootingSystem.shoot(25, 35, 270, 'Escopeta', 20, 'Rojo');
+  console.log('\nLugares del mapa:');
+  places.forEach((place) => place.display());
 
   console.log(
-    `Total de balas disparadas: %c${shootingSystem.getBulletCount()}\n`,
-    COLORS.yellow
+    `\n¿Las dos bibliotecas comparten el mismo icono? ${places[0].getIcon() === places[1].getIcon()}`,
+  );
+  console.log(
+    `¿Las cafeterías comparten el mismo icono? ${places[2].getIcon() === places[3].getIcon()}`,
   );
 }
 

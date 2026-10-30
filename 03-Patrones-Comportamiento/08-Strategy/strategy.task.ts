@@ -1,112 +1,84 @@
 
 /**
- * ! Patrón Strategy
- *
- * El patrón Strategy es un patrón de diseño de software que define una
- * familia de algoritmos, los encapsula y los hace intercambiables.
- *
- *
- * * Es útil cuando se tiene una clase que tiene un comportamiento que puede
- * * cambiar en tiempo de ejecución y se quiere delegar la responsabilidad de
- * * la implementación a otra clase.
- *
- * https://refactoring.guru/es/design-patterns/strategy
+ * Patrón Strategy (Estrategia): define una familia de algoritmos, los encapsula
+ * y permite intercambiarlos sin cambiar el contexto que los utiliza.
+ * Este ejemplo calcula el transporte de un pedido en bicicleta, motocicleta o
+ * automóvil. Es adecuado porque cada tarifa tiene una fórmula propia y la orden
+ * puede cambiar de método sin incluir esas fórmulas en su lógica.
+ * Referencia: https://refactoring.guru/es/design-patterns/strategy
  */
 
-/**
- * !Objetivo: 
- * Implementar el patrón Strategy para calcular los impuestos de diferentes países.
- * 
- * !Descripción del Ejercicio
-
-  Imagina que trabajas en una plataforma de comercio electrónico que opera en varios países. 
-  Cada país tiene su propio método para calcular impuestos, 
-  y necesitas implementar un sistema que sea:
-
-    1. Flexible: Permita agregar nuevos cálculos de impuestos 
-       sin modificar la lógica existente.
-    2. Dinámico: Cambie la estrategia de cálculo de impuestos en tiempo 
-       de ejecución según el país seleccionado.
- */
-
-/**	
-    1.	Implementar una interfaz TaxStrategy que defina un método 
-        calculateTax(amount: number): number.
-        
-    2.	Crear clases específicas de estrategia para los países disponibles:
-      •	USA: Impuesto del 10%.
-      •	Canada: Impuesto del 13%.
-      •	Germany: Impuesto del 19%.
-      
-    3.	Implementar una clase TaxCalculator que utilice las estrategias 
-        para calcular los impuestos.
- */
-
-import { COLORS } from '../../helpers/colors.ts';
-
-// Interfaz Strategy
-interface TaxStrategy {
-  calculateTax(amount: number): number;
+interface TransportStrategy {
+  calculateCost(distanceKm: number): number;
 }
 
-// Estrategia 1: Impuestos en USA
-class USATaxStrategy implements TaxStrategy {
-  // TODO: Implementar el método calculateTax = amount * 0.1
-  calculateTax(amount: number): number {
-    return amount * 0.1;
+class BicycleStrategy implements TransportStrategy {
+  calculateCost(distanceKm: number): number {
+    return distanceKm * 1000;
   }
 }
 
-// Estrategia 2: Impuestos en Canada
-class CanadaTaxStrategy implements TaxStrategy {
-  // TODO: Implementar el método calculateTax = amount * 0.13
-  calculateTax(amount: number): number {
-    return amount * 0.13;
+class MotorcycleStrategy implements TransportStrategy {
+  calculateCost(distanceKm: number): number {
+    return 1200 + distanceKm * 1500;
   }
 }
 
-// Estrategia 3: Impuestos en Germany
-class GermanyTaxStrategy implements TaxStrategy {
-  // TODO: Implementar el método calculateTax = amount * 0.19
-  calculateTax(amount: number): number {
-    return amount * 0.19;
+class CarStrategy implements TransportStrategy {
+  calculateCost(distanceKm: number): number {
+    return 3500 + distanceKm * 2500;
   }
 }
 
-// Clase Contexto - TaxCalculator
-class TaxCalculator {
-  private strategy: TaxStrategy;
+class DeliveryOrder {
+  private description: string;
+  private distanceKm: number;
+  private strategy: TransportStrategy;
 
-  // TODO: Implementar el constructor recibiendo la estrategia a usar
-  constructor(stratey: TaxStrategy){
-    this.strategy = stratey;
-  }
-
-  // Cambiar la estrategia de cálculo de impuestos
-  setStrategy(strategy: TaxStrategy): void {
+  constructor(
+    description: string,
+    distanceKm: number,
+    strategy: TransportStrategy,
+  ) {
+    this.description = description;
+    this.distanceKm = distanceKm;
     this.strategy = strategy;
   }
 
-  // Calcular impuestos
-  calculate(amount: number): number {
-    return this.strategy.calculateTax(amount);
+  setStrategy(strategy: TransportStrategy): void {
+    this.strategy = strategy;
+  }
+
+  calculateDeliveryCost(): number {
+    return this.strategy.calculateCost(this.distanceKm);
+  }
+
+  displayCost(transportName: string): void {
+    const cost = this.calculateDeliveryCost();
+    console.log(
+      `${this.description} (${this.distanceKm} km) en ${transportName}: $${cost.toLocaleString('es-CO')} COP`,
+    );
   }
 }
 
-// Código Cliente para probar
 function main(): void {
-  const taxCalculator = new TaxCalculator(new USATaxStrategy());
+  const order = new DeliveryOrder(
+    'Pedido de materiales de clase',
+    6,
+    new BicycleStrategy(),
+  );
 
-  console.log('%cCálculo de impuestos:\n', COLORS.red);
-  console.log('USA: $', taxCalculator.calculate(100).toFixed(2));
+  order.displayCost('bicicleta');
 
-  console.log('\nCambiando a estrategia para Canada...');
-  taxCalculator.setStrategy(new CanadaTaxStrategy());
-  console.log('Canada: $', taxCalculator.calculate(100).toFixed(2));
+  order.setStrategy(new MotorcycleStrategy());
+  order.displayCost('motocicleta');
 
-  console.log('\nCambiando a estrategia para Germany...');
-  taxCalculator.setStrategy(new GermanyTaxStrategy());
-  console.log('Germany: $', taxCalculator.calculate(100).toFixed(2));
+  order.setStrategy(new CarStrategy());
+  order.displayCost('automóvil');
+
+  console.log(
+    '\nLa orden usa la misma operación para calcular el costo; cada estrategia aporta su propia tarifa.',
+  );
 }
 
 main();
