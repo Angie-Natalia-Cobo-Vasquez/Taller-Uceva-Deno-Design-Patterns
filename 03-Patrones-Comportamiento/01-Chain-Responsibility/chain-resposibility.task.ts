@@ -6,6 +6,11 @@
  * * Es útil cuando se necesita procesar datos de diferentes maneras, pero no
  * * se sabe de antemano qué tipo de procesamiento se necesita o en qué orden
  * * pero se sabe que se necesita procesar en una secuencia.
+ *
+ * Problema: una solicitud de compra puede requerir autorización de distintos
+ * responsables según su monto, sin acoplar al solicitante con cada responsable.
+ * Solución: cada aprobador procesa lo que puede y pasa la solicitud al siguiente
+ * eslabón cuando supera su límite.
  */
 
 import { COLORS } from '../../helpers/colors.ts';
@@ -25,7 +30,6 @@ abstract class BaseApprover implements Approver {
     return approver;
   }
 
-  //! Este método debe de ser implementado por las subclases.
   abstract approveRequest(amount: number): void;
 
   protected next(amount: number): void {
@@ -40,56 +44,45 @@ abstract class BaseApprover implements Approver {
 // 3. Clases Concretas de Aprobadores
 
 class Supervisor extends BaseApprover {
-  // TODO: Implementar el método approveRequest si el monto es menor o igual a 1000
-  // TODO: Si el monto es mayor a 1000, pasar la solicitud al siguiente aprobador
-
   override approveRequest(amount: number): void {
-    if(amount <= 1000){
-       console.log(`Supervisor: %cAprobando Solicitud de $${amount}`, COLORS.green);
+     if (amount <= 1000) {
+       console.log(`Supervisor: %cAprobando solicitud de $${amount}`, COLORS.green);
        return;
-    }
-     console.log('Supervisor: %cPasando Solicitud a Maganer', COLORS.red);  
+     }
+
+     console.log('Supervisor: %cPasando solicitud al gerente', COLORS.red);
      super.next(amount);
   }
-
 }
 
 class Manager extends BaseApprover {
-  // TODO: Implementar el método approveRequest si el monto es menor o igual a 5000
-  // TODO: Si el monto es mayor a 5000, pasar la solicitud al siguiente aprobador
-
   override approveRequest(amount: number): void {
-    if(amount <= 5000){
-       console.log(`Manager: %cAprobando Solicitud de $${amount}`, COLORS.green);
+     if (amount <= 5000) {
+       console.log(`Gerente: %cAprobando solicitud de $${amount}`, COLORS.green);
        return;
-    }
-     console.log('Manager: %cPasando Solicitud a Director', COLORS.red);  
+     }
+
+     console.log('Gerente: %cPasando solicitud al director', COLORS.red);
      super.next(amount);
   }
 }
 
 class Director extends BaseApprover {
-  // TODO: Implementar el método approveRequest si el monto
   override approveRequest(amount: number): void {
-    console.log(`Director: %cAprobando Solicitud de $${amount}`, COLORS.green);
-    return;
+     console.log(`Director: %cAprobando solicitud de $${amount}`, COLORS.green);
   }
 }
 
 // 4. Código Cliente para probar la cadena de responsabilidad
 
-function main() {
-  // Supervidor <= 1000
+function main(): void {
   const supervisor = new Supervisor();
-  // Manager <= 5000
   const manager = new Manager();
-  // Director puedo aprobar todo
   const director = new Director();
 
   // Configurar la cadena de responsabilidad
   supervisor.setNext(manager).setNext(director);
 
-  // Probar diferentes solicitudes de compra
   console.log('Solicitud de compra de $500:');
   supervisor.approveRequest(500);
 

@@ -9,27 +9,16 @@
  * * Es útil cuando necesitas crear objetos que son parte de una familia
  * * y quieres asegurarte de que estos objetos se complementen entre sí.
  *
+ * Problema: un vehículo y su motor deben pertenecer a la misma familia
+ * tecnológica para evitar combinaciones incompatibles.
+ * Solución: cada fábrica crea la familia eléctrica o la familia de combustión,
+ * mientras el cliente depende únicamente de las interfaces de los productos.
+ *
  * https://refactoring.guru/es/design-patterns/abstract-factory
  */
 
-import { COLORS } from "../../helpers/colors.ts";
+import { COLORS } from '../../helpers/colors.ts';
 
-/**
- * !Instrucciones:
- 	1.Completen las Clases de Productos:
-    •	ElectricCar debe implementar Vehicle y mostrar el mensaje "Ensamblando un auto eléctrico".
-    •	GasCar debe implementar Vehicle y mostrar el mensaje "Ensamblando un auto de combustión".
-    •	ElectricEngine debe implementar Engine y mostrar el mensaje "Arrancando motor eléctrico".
-    •	GasEngine debe implementar Engine y mostrar el mensaje "Arrancando motor de combustión".
-
-	2.	Completen las Clases de Fábricas:
-    •	ElectricVehicleFactory debe crear un ElectricCar y un ElectricEngine.
-    •	GasVehicleFactory debe crear un GasCar y un GasEngine.
-
-	3. Prueben el Código:
-	  •	Ejecuten el código para asegurarse de que cada fábrica produce el tipo correcto de vehículo y motor.
-
- */
 // 1. Interfaces de Vehicle y Engine
 interface Vehicle {
   assemble(): void;
@@ -42,48 +31,35 @@ interface Engine {
 // 2. Clases Concretas de Productos
 
 class ElectricCar implements Vehicle {
-  // Implementación del método assemble
-  // 'Ensamblando un auto eléctrico'
   assemble(): void {
-    console.log('+Ensamblando un auto %celéctrico', COLORS.blue);
+    console.log('Ensamblando un auto %celéctrico', COLORS.blue);
   }
 }
 
 class GasCar implements Vehicle {
-  // Implementación del método assemble
-  // 'Ensamblando un auto de combustión'
   assemble(): void {
     console.log('Ensamblando un auto de %ccombustión', COLORS.brown);
   }
 }
 
 class ElectricEngine implements Engine {
-  // Implementación del método start
-  // 'Arrancando motor eléctrico'
   start(): void {
     console.log('Arrancando motor %celéctrico', COLORS.blue);
   }
 }
 
 class GasEngine implements Engine {
-  // Implementación del método start
-  // 'Arrancando motor de combustión'
   start(): void {
     console.log('Arrancando motor de %ccombustión', COLORS.brown);
   }
 }
-
-// 3. Interfaz de la Fábrica Abstracta
 
 interface VehicleFactory {
   createVehicle(): Vehicle;
   createEngine(): Engine;
 }
 
-// 4. Clases Concretas de Fábricas
-
 class ElectricVehicleFactory implements VehicleFactory {
-  // Implementación de los métodos createVehicle y createEngine
   createVehicle(): Vehicle {
     return new ElectricCar();
   }
@@ -93,7 +69,6 @@ class ElectricVehicleFactory implements VehicleFactory {
 }
 
 class GasVehicleFactory implements VehicleFactory {
-  // Implementación de los métodos createVehicle y createEngine
   createVehicle(): Vehicle {
     return new GasCar();
   }
@@ -102,9 +77,7 @@ class GasVehicleFactory implements VehicleFactory {
   }
 }
 
-// 5. Código Cliente
-
-function main(factory: VehicleFactory) {
+function assembleVehicleFamily(factory: VehicleFactory): void {
   const vehicle = factory.createVehicle();
   const engine = factory.createEngine();
 
@@ -112,9 +85,12 @@ function main(factory: VehicleFactory) {
   engine.start();
 }
 
-// Pruebas
-console.log('Creando vehículo eléctrico:');
-main(new ElectricVehicleFactory());
+function main(): void {
+  console.log('Creando familia de vehículo eléctrico:');
+  assembleVehicleFamily(new ElectricVehicleFactory());
 
-console.log('\nCreando vehículo de combustión:');
-main(new GasVehicleFactory());
+  console.log('\nCreando familia de vehículo de combustión:');
+  assembleVehicleFamily(new GasVehicleFactory());
+}
+
+main();
