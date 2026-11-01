@@ -9,48 +9,32 @@
  * * Es útil cuando una clase no puede anticipar la clase
  * * de objetos que debe crear.
  *
+ * Problema: el sistema necesita generar reportes de distintos tipos sin que
+ * el código cliente conozca las clases concretas de cada reporte.
+ * Solución: cada fábrica decide qué reporte crear y el cliente trabaja con
+ * la interfaz Report. Así se pueden agregar nuevos tipos sin modificar el
+ * flujo general de generación.
+ *
  * https://refactoring.guru/es/design-patterns/factory-method
- */
-
-/**
- * 	!Descripción:
-  1.	Completen las clases SalesReport e InventoryReport para implementar 
-      la interfaz Report, generando el contenido de cada reporte en el método generate.
-	  
-  2.	Implementen las clases SalesReportFactory e InventoryReportFactory 
-      para crear instancias de SalesReport y InventoryReport, respectivamente.
-
-	3.	Prueben el programa generando diferentes tipos de reportes usando
-      el prompt para seleccionar el tipo de reporte.
  */
 
 import { COLORS } from '../../helpers/colors.ts';
 
-// 1. Definir la interfaz Report
 interface Report {
   generate(): void;
 }
 
-// 2. Clases concretas de Reportes
-// Implementar SalesReport e InventoryReport
-
 class SalesReport implements Report {
-  // TODO: implementar el método e imprimir en consola:
-  // 'Generando reporte de ventas...'
-  generate(){
-    console.log('%cGenerando Reporte de Ventas...', COLORS.green);
+  generate(): void {
+    console.log('%cGenerando reporte de ventas...', COLORS.green);
   }
 }
 
 class InventoryReport implements Report {
-  // TODO: implementar el método e imprimir en consola:
-  // 'Generando reporte de inventario...'
-  generate(){
-    console.log('%cGenerando Reporte de Invetario...', COLORS.orange);
+  generate(): void {
+    console.log('%cGenerando reporte de inventario...', COLORS.orange);
   }
 }
-
-// 3. Clase Base ReportFactory con el Método Factory
 
 abstract class ReportFactory {
   protected abstract createReport(): Report;
@@ -61,34 +45,27 @@ abstract class ReportFactory {
   }
 }
 
-// 4. Clases Concretas de Fábricas de Reportes
-
 class SalesReportFactory extends ReportFactory {
-  createReport(): Report {
+  protected createReport(): Report {
     return new SalesReport();
   }
 }
 
 class InventoryReportFactory extends ReportFactory {
-  createReport(): Report {
+  protected createReport(): Report {
     return new InventoryReport();
   }
 }
 
-// 5. Código Cliente para Probar
+function main(): void {
+  const reportFactories: ReportFactory[] = [
+    new SalesReportFactory(),
+    new InventoryReportFactory(),
+  ];
 
-function main() {
-  let reportFactory: ReportFactory;
-
-  const reportType = prompt('¿Qué tipo de reporte deseas? (sales/inventory)');
-
-  if (reportType === 'sales') {
-    reportFactory = new SalesReportFactory();
-  } else {
-    reportFactory = new InventoryReportFactory();
+  for (const reportFactory of reportFactories) {
+    reportFactory.generateReport();
   }
-
-  reportFactory.generateReport();
 }
 
 main();

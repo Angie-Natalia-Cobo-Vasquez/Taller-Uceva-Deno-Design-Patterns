@@ -9,10 +9,13 @@
  * * Es útil cuando un subsistema es complejo o difícil de entender para
  * * proporcionar una interfaz simplificada para el cliente.
  *
+ * Problema: encender o apagar un computador requiere coordinar varias
+ * operaciones de CPU, memoria y disco duro en un orden específico.
+ * Solución: ComputerFacade encapsula esa coordinación y ofrece al cliente
+ * únicamente las operaciones startComputer y shutDownComputer.
+ *
  * https://refactoring.guru/es/design-patterns/facade
  */
-
-// !Tarea: Tarea: Sistema de Encendido de una Computadora con el Patrón Facade
 
 import { COLORS } from '../../helpers/colors.ts';
 
@@ -40,7 +43,7 @@ class HardDrive {
     return '001010001010100';
   }
 
-  close() {
+  close(): void {
     console.log('HardDrive: Deteniendo disco duro.');
   }
 }
@@ -58,12 +61,10 @@ class Memory {
 // 2. Clase Facade - ComputerFacade
 
 class ComputerFacade {
-  // TODO: Agregar los atributos necesarios CPU, Memory y HardDrive
   private cpu: CPU;
   private memory: Memory;
   private hardDrive: HardDrive;
 
-  // TODO: Agregar el constructor para instanciar los atributos CPU, Memory y HardDrive
   constructor() {
     this.cpu = new CPU();
     this.memory = new Memory();
@@ -72,11 +73,6 @@ class ComputerFacade {
 
   startComputer(): void {
     console.log('\n%cIniciando la computadora...', COLORS.cyan);
-
-    // TODO: ejecutar las operaciones necesarias para encender la computadora
-    // 1. Cargar el sistema operativo en la memoria - memory.load(0, hardDrive.read(0, 1024))
-    // 2. Saltar a la posición de memoria 0 - cpu.jump(0)
-    // 3. Ejecutar las instrucciones del CPU - cpu.execute()
 
     this.memory.load(0, this.hardDrive.read(0, 1024));
     this.cpu.jump(0);
@@ -89,11 +85,6 @@ class ComputerFacade {
     console.log('\n%cApagando la computadora...', COLORS.red);
     console.log('Cerrando procesos y guardando datos...');
 
-    // TODO: ejecutar las operaciones necesarias para apagar la computadora
-    // 1. Detener las operaciones del CPU - cpu.stopOperations()
-    // 2. Liberar la memoria - memory.free()
-    // 3. Cerrar el disco duro - hardDrive.close()
-
     this.cpu.stopOperations();
     this.memory.free();
     this.hardDrive.close();
@@ -102,9 +93,7 @@ class ComputerFacade {
   }
 }
 
-// 3. Código Cliente para Usar la Facade
-// TODO: Aquí no hay nada que hacer, debe de encender la computadora y apagarla sin problemas
-function main() {
+function main(): void {
   const computer = new ComputerFacade();
 
   // Encender la computadora usando la fachada

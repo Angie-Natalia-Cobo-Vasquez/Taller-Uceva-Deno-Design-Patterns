@@ -6,14 +6,16 @@
  * * Es útil cuando se necesita guardar el estado de un objeto para poder
  * * volver a él en un futuro.
  *
+ * Problema: una pizarra debe permitir deshacer cambios sin exponer ni alterar
+ * directamente su estado interno desde el historial.
+ * Solución: DrawingMemento guarda copias del estado y History las administra,
+ * permitiendo restaurar versiones anteriores de DrawingBoard.
+ *
  * https://refactoring.guru/es/design-patterns/memento
  */
 
 import { COLORS } from '../../helpers/colors.ts';
 
-// Una pizarra donde se pueden agregar figuras
-
-// Clase Memento - DrawingMemento
 class DrawingMemento {
   private shapes: string[];
 
@@ -42,9 +44,7 @@ class DrawingBoard {
     console.log('Pizarra actual:', this.shapes.join(', ') || 'Vacía');
   }
 
-  // Crear un Memento del estado actual de la pizarra
   save(): DrawingMemento {
-    // TODO: Implementar el método save para guardar el estado actual
     return new DrawingMemento(this.shapes);
   }
 
@@ -59,14 +59,10 @@ class DrawingBoard {
 class History {
   private mementos: DrawingMemento[] = [];
 
-  // Guardar un Memento
-  // TODO: Implementar push para guardar en la historia
   push(memento: DrawingMemento): void {
     this.mementos.push(memento);
   }
 
-  // Recuperar el último Memento
-  // TODO: Implementar pop para recuperar el último memento
   pop(): DrawingMemento | undefined {
     return this.mementos.pop();
   }
